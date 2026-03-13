@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { MessageCircle, Gamepad2, ArrowLeft, Download, CreditCard, ExternalLink } from 'lucide-react';
 

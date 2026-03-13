@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Lock, CheckCircle2 } from 'lucide-react';
 
 export function Payment() {

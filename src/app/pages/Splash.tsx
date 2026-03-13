@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router';
-// Using the provided Figma asset
+import { useNavigate } from 'react-router-dom';
+
 import splashLogo from '../../assets/0cda4b9948014d0f4eb7a42481f55bed101e2c79.png';
 export function Splash() {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ export function Splash() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigate('/catalog', { replace: true });
-    }, 2500); // 2.5 seconds splash
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [navigate]);
