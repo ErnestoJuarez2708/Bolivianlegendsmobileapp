@@ -23,7 +23,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-amber-800/50 px-3 py-1.5 rounded-full">
               <UserCircle size={20} className="text-amber-200" />
-              <span className="text-sm font-medium hidden sm:inline-block">{user.username}</span>
+              <span className="text-sm font-medium hidden sm:inline-block">{user.email}</span>
             </div>
             <button 
               onClick={handleLogout}

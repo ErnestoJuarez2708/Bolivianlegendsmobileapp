@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, ArrowLeft } from 'lucide-react';
+import { LogIn, ArrowLeft, AlertCircle } from 'lucide-react';
 
 export function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim()) {
-      login(username);
+    setError('');
+    setLoading(true);
+
+    try {
+      await login(email.trim(), password);
       navigate('/catalog');
+    } catch (err: any) {
+      setError(err.message || 'Credenciales inválidas');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,15 +45,22 @@ export function Login() {
             <p className="text-stone-500 text-sm">Inicia sesión para descubrir y comentar</p>
           </div>
 
+          {error && (
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl flex items-center gap-2 text-sm">
+              <AlertCircle size={20} />
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2 text-left">
-              <label className="text-sm font-medium text-stone-700 ml-1">Usuario</label>
+              <label className="text-sm font-medium text-stone-700 ml-1">Correo electrónico</label>
               <input 
-                type="text" 
+                type="email" 
                 className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:bg-white outline-none transition-all"
-                placeholder="Ej. Pachacutec99"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="ejemplo@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -62,10 +79,17 @@ export function Login() {
 
             <button 
               type="submit" 
-              className="w-full bg-amber-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-800 transition-all shadow-md active:scale-95 mt-6"
+              disabled={loading}
+              className="w-full bg-amber-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-800 transition-all shadow-md active:scale-95 mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <LogIn size={20} />
-              <span>Ingresar</span>
+              {loading ? (
+                "Ingresando..."
+              ) : (
+                <>
+                  <LogIn size={20} />
+                  <span>Ingresar</span>
+                </>
+              )}
             </button>
           </form>
 
