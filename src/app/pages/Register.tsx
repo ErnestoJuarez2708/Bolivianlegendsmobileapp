@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { UserPlus, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function Register() {
   const [formData, setFormData] = useState({
@@ -48,7 +48,7 @@ export function Register() {
 
     try {
       const payload = {
-        nombre: formData.username.trim(),   // ← Enviamos como "nombre" para que el backend lo entienda
+        nombre: formData.username.trim(),
         email: formData.email.trim(),
         password: formData.password,
       };
@@ -63,8 +63,7 @@ export function Register() {
 
       localStorage.setItem('token', token);
 
-      // El backend no devuelve "user" con username, así que usamos lo que ingresó el usuario
-      login(formData.username);
+      login(formData.username, formData.password);
 
       navigate('/catalog');
 

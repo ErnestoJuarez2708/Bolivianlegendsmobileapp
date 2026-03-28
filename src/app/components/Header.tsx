@@ -40,7 +40,7 @@ export function Header() {
             </Link>
             <span className="hidden sm:inline-block text-amber-500">|</span>
             <Link to="/register" className="hover:text-amber-200 transition-colors">
-              Crearse una cuenta
+              Registrarse
             </Link>
           </div>
         )}
