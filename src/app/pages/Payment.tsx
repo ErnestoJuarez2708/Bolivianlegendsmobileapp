@@ -11,7 +11,6 @@ export function Payment() {
     e.preventDefault();
     setIsProcessing(true);
     
-    // Simulate API call
     setTimeout(() => {
       setIsProcessing(false);
       setIsSuccess(true);
