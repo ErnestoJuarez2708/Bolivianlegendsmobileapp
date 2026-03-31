@@ -1,43 +1,108 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MessageCircle, Gamepad2, ArrowLeft, Download, CreditCard, ExternalLink } from 'lucide-react';
+import { MessageCircle, Gamepad2, ArrowLeft, CreditCard } from 'lucide-react';
 
 export function LegendDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to top on mount
+  const [leyenda, setLeyenda] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo(0, 0);
-    }
+    console.log("📍 useParams id recibido:", id);
   }, [id]);
 
-  // For this prototype, we just focus on Lago Titicaca content
-  const content = {
-    title: "La leyenda inca del Lago Titicaca",
-    image: "https://images.unsplash.com/photo-1597681017981-c4654947c061?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYWtlJTIwdGl0aWNhY2ElMjBib2xpdmlhfGVufDF8fHx8MTc3MjY3ODE1NHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    paragraphs: [
-      "Cuenta la leyenda que el dios Inti (el Sol) compadeció a los hombres que vivían como animales salvajes en la tierra, sin conocer la agricultura ni el tejido. Para civilizarlos, envió a sus dos hijos: Manco Cápac y Mama Ocllo.",
-      "Ambos emergieron de las espumosas aguas del Lago Titicaca, el lago sagrado. Inti les entregó una vara de oro y les ordenó que caminaran hacia el norte, hundiendo la vara en la tierra cada vez que se detuvieran a descansar.",
-      "El dios Sol les indicó que el lugar donde la vara se hundiera fácilmente sería la tierra prometida, donde deberían fundar la capital de su futuro imperio y enseñar a los hombres a vivir en sociedad.",
-      "Tras mucho caminar, Manco Cápac y Mama Ocllo llegaron a un valle fértil al pie del cerro Huanacauri. Allí, la vara de oro se hundió en la tierra de un solo golpe, desapareciendo por completo. ¡Ese era el lugar elegido!",
-      "Manco Cápac se encargó de enseñar a los hombres a cultivar la tierra, construir canales de riego y erigir viviendas. Mama Ocllo, por su parte, enseñó a las mujeres a tejer, coser y cocinar.",
-      "Así nació la majestuosa ciudad del Cusco, el 'Ombligo del Mundo', capital del poderoso Imperio Incaico, una civilización que floreció bajo la guía de los hijos del Sol."
-    ]
-  };
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTo(0, 0);
+  }, [id]);
+
+  useEffect(() => {
+    const fetchLeyenda = async () => {
+      console.log("Intentando cargar leyenda con id:", id);
+
+      if (!id) {
+        setError("No se recibió ID de la leyenda");
+        setLoading(false);
+        return;
+      }
+
+      const numericId = parseInt(id);
+      if (isNaN(numericId) || numericId <= 0) {
+        setError(`ID inválido: "${id}". Se esperaba un número.`);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch(`/api/leyendas/${numericId}`);
+
+        console.log(`📡 Respuesta del servidor: ${response.status} ${response.statusText}`);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Error ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Leyenda cargada:", data);
+        setLeyenda(data);
+      } catch (err: any) {
+        console.error("Error al cargar leyenda:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeyenda();
+  }, [id]);
 
   const handleFullClick = () => {
     if (!user) {
       alert("Debes iniciar sesión para comprar el juego.");
       navigate('/login');
-    } else {
-      navigate('/payment');
+      return;
     }
+    navigate('/payment');
   };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-stone-50">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-stone-600">Cargando leyenda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-stone-50 p-6">
+        <div className="text-center max-w-md">
+          <p className="text-red-600 mb-4">⚠️ {error}</p>
+          <p className="text-stone-500 text-sm mb-6">
+            ID recibido: <strong>{id || "undefined"}</strong>
+          </p>
+          <Link 
+            to="/catalog" 
+            className="inline-block bg-amber-700 text-white px-6 py-3 rounded-xl hover:bg-amber-800"
+          >
+            ← Volver al Catálogo
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-stone-50" ref={scrollRef}>
@@ -53,53 +118,43 @@ export function LegendDetail() {
       <div className="flex-1 overflow-y-auto pb-32">
         <div className="relative h-72 md:h-96 w-full">
           <img 
-            src={content.image} 
-            alt={content.title}
+            src={leyenda.imagen_url} 
+            alt={leyenda.titulo}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/40 to-transparent" />
-          <h1 className="absolute bottom-6 left-6 right-6 text-3xl md:text-4xl font-serif font-bold text-white leading-tight drop-shadow-md">
-            {content.title}
+          <h1 className="absolute bottom-6 left-6 right-6 text-3xl md:text-4xl font-serif font-bold text-white">
+            {leyenda.titulo}
           </h1>
         </div>
 
         <div className="px-6 py-8">
           <div className="prose prose-stone max-w-none space-y-4">
-            {content.paragraphs.map((p, i) => (
-              <p key={i} className="text-stone-700 text-lg leading-relaxed font-sans first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:text-amber-700 first-line:tracking-widest first-line:uppercase">
-                {p}
+              <p className="text-stone-700 text-lg leading-relaxed font-sans first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:text-amber-700 first-line:tracking-widest first-line:uppercase">
+                {leyenda.descripcion}
               </p>
-            ))}
           </div>
         </div>
       </div>
-
-      <div className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-stone-50 border-t border-stone-200 p-4 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-        <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <button 
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all shadow-sm active:scale-95 bg-amber-100 text-amber-900 hover:bg-amber-200"
-              onClick={() => alert("Descargando demo (Mock)...")}
-            >
-              <Gamepad2 size={20} />
-              <span>Jugar Demo</span>
-            </button>
-            <button 
-              className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all shadow-sm active:scale-95 bg-amber-700 text-white hover:bg-amber-800 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
-              onClick={handleFullClick}
-            >
-              <CreditCard size={20} />
-              <span>Completo ($2)</span>
-            </button>
-          </div>
-          <Link 
+      <div className="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-stone-50 border-t p-4">
+        <div className="grid grid-cols-2 gap-3">
+          <button className="py-3 bg-amber-100 text-amber-900 rounded-xl font-semibold flex items-center justify-center gap-2">
+            <Gamepad2 size={20} /> Jugar Demo
+          </button>
+          <button 
+            onClick={handleFullClick}
+            className="py-3 bg-amber-700 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+          >
+            <CreditCard size={20} /> Completo ($2)
+          </button>
+        </div>
+         <Link 
             to={`/legend/${id}/comments`}
             className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all active:scale-95 bg-stone-200 text-stone-800 hover:bg-stone-300"
           >
             <MessageCircle size={20} />
             <span>Ver Comentarios</span>
           </Link>
-        </div>
       </div>
     </div>
   );
