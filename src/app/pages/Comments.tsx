@@ -29,21 +29,34 @@ export function Comments() {
   }, [id]);
 
   const fetchComments = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/comentarios/${id}`);
-      
-      if (!response.ok) throw new Error('Error al cargar comentarios');
-      
-      const data = await response.json();
-      setComments(data);
-    } catch (err) {
-      console.error(err);
-      setError('No se pudieron cargar los comentarios');
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setError(null);
+
+    const response = await fetch(`/api/comentarios/${id}`);
+    
+    if (!response.ok) {
+      throw new Error('Error al cargar comentarios');
     }
-  };
+
+    const data = await response.json();
+
+    const comentariosArray = Array.isArray(data.comentarios) 
+      ? data.comentarios 
+      : Array.isArray(data) 
+        ? data 
+        : [];
+
+    setComments(comentariosArray);
+
+  } catch (err) {
+    console.error('Error fetching comments:', err);
+    setError('No se pudieron cargar los comentarios');
+    setComments([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
